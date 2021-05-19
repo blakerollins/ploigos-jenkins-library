@@ -518,6 +518,21 @@ def call(Map paramsMap) {
                             }
                         }
                     }
+                    stage('CI: Static Code Analysis') {
+                        steps {
+                            container("${WORKFLOW_WORKER_NAME_STATIC_CODE_ANALYSIS}") {
+                                sh """
+                                    if [ "${params.verbose}" == "true" ]; then set -x; else set +x; fi
+                                    set -eu -o pipefail
+
+                                    source ${HOME}/${WORKFLOW_WORKER_VENV_NAME}/bin/activate
+                                    psr \
+                                        --config ${PSR_CONFIG_ARG} \
+                                        --step static-code-analysis
+                                """
+                            }
+                        }
+                    }
                     stage('CI: Push Application to Repository') {
                         steps {
                             container("${WORKFLOW_WORKER_NAME_PUSH_ARTIFACTS}") {
@@ -559,6 +574,21 @@ def call(Map paramsMap) {
                                     psr \
                                         --config ${PSR_CONFIG_ARG} \
                                         --step push-container-image
+                                """
+                            }
+                        }
+                    }
+                    stage('CI: Sign Container Image') {
+                        steps {
+                            container("${WORKFLOW_WORKER_NAME_CONTAINER_OPERATIONS}") {
+                                sh """
+                                    if [ "${params.verbose}" == "true" ]; then set -x; else set +x; fi
+                                    set -eu -o pipefail
+
+                                    source ${HOME}/${WORKFLOW_WORKER_VENV_NAME}/bin/activate
+                                    psr \
+                                        --config ${PSR_CONFIG_ARG} \
+                                        --step sign-container-image
                                 """
                             }
                         }
